@@ -1,4 +1,4 @@
-package com.mfazrinizar.yamble_yap_to_gamble_ai_game
+package com.mfazrinizar.yamble
 
 import io.flutter.embedding.android.FlutterActivity
 

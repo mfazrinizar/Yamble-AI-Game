@@ -41,3 +41,18 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# environment file
+.env
+
+# google services file
+google-services.json
+
+# firebase generated file
+firebase.json
+
+# launching config
+launch.json
+
+# encryption key file
+encryption_key.json

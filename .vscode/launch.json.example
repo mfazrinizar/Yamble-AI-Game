@@ -1,0 +1,42 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+
+    // ATTENTION: Replace the values of ENV_ENCRYPTION_KEY and ENV_IV_KEY with your own values (AES-256/192/128-CBC)
+
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "yamble_yap_to_gamble_ai_game",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "debug",
+            "args": [
+                "--dart-define", "ENV_ENCRYPTION_KEY=your_encryption_key_here",
+                "--dart-define", "ENV_IV_KEY=your_iv_key_here",
+            ],
+            "console": "debugConsole"
+        },
+        {
+            "name": "yamble_yap_to_gamble_ai_game (profile mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile",
+            "args": [
+                "--dart-define", "ENV_ENCRYPTION_KEY=your_encryption_key_here",
+                "--dart-define", "ENV_IV_KEY=your_iv_key_here",
+            ],
+        },
+        {
+            "name": "yamble_yap_to_gamble_ai_game (release mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release",
+            "args": [
+                "--dart-define", "ENV_ENCRYPTION_KEY=your_encryption_key_here",
+                "--dart-define", "ENV_IV_KEY=your_iv_key_here",
+            ],
+        }
+    ]
+}
