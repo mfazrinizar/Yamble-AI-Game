@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Yamble: Yap to Gamble AI Game',
       theme: theme,
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );

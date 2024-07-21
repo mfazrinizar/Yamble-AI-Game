@@ -38,6 +38,10 @@ dependencies:
   secure_dotenv: ^1.0.0
   json_theme: ^6.5.0+1
   flutter_native_splash: ^2.4.1
+  convex_bottom_bar: ^3.2.0
+  cloud_firestore: ^5.1.0
+  firebase_storage: ^12.1.1
+  firebase_auth: ^5.1.2
  
 
 flutter_launcher_icons:
@@ -103,6 +107,7 @@ flutter:
     - assets/images/
     - assets/logo/
     - assets/theme/
+    - assets/ranks/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
