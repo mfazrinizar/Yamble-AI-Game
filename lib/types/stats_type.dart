@@ -1,7 +1,7 @@
 import 'user_type.dart';
 
 class Stats {
-  User user;
+  UserYamble user;
   int rank;
   int totalWin;
   int hardWin;

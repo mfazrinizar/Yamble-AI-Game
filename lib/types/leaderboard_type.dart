@@ -2,7 +2,7 @@ import 'user_type.dart';
 import 'stats_type.dart';
 
 class Leaderboard {
-  User user;
+  UserYamble user;
   Stats stats;
 
   Leaderboard({

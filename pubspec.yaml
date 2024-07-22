@@ -45,6 +45,11 @@ dependencies:
   awesome_dialog: ^3.2.1
   flutter_svg: ^2.0.10+1
   flutter_exit_app: ^1.1.3
+  flutter_smart_dialog: ^4.9.7+9
+  flutter_secure_storage: ^9.2.2
+  image_picker: ^1.1.2
+  device_info_plus: ^10.1.0
+  permission_handler: ^11.3.1
  
 
 flutter_launcher_icons:
@@ -53,12 +58,12 @@ flutter_launcher_icons:
   ios: true
   min_sdk_android: 21
   remove_alpha_ios: true
-  background_color_ios: "#1C2740"
+  background_color_ios: "#E5DEFF"
   web:
     generate: true
     image_path: "assets/logo/logo.png"
-    background_color: "#1C2740"
-    theme_color: "#1C2740"
+    background_color: "#E5DEFF"
+    theme_color: "#E5DEFF"
   windows:
     generate: true
     image_path: "assets/logo/logo.png"
@@ -68,16 +73,16 @@ flutter_launcher_icons:
     image_path: "assets/logo/logo.png"
 
 flutter_native_splash:
-  color: "#1C2740"
+  color: "#E5DEFF"
   image: assets/logo/splash_screen.png
-  color_dark: "#1C2740"
+  color_dark: "#E5DEFF"
   image_dark: assets/logo/splash_screen.png
 
   android_12:
     image: assets/logo/splash_screen.png
-    icon_background_color: "#1C2740"
+    icon_background_color: "#E5DEFF"
     image_dark: assets/logo/splash_screen.png
-    icon_background_color_dark: "#1C2740" 
+    icon_background_color_dark: "#E5DEFF" 
 
 dev_dependencies:
   flutter_launcher_icons: "^0.13.1"

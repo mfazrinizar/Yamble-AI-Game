@@ -1,13 +1,17 @@
-class User {
+import 'dart:io';
+
+class UserYamble {
+  File? profilePictureFile;
   String userId;
   String userName;
   String name;
-  String profilePictureUrl;
+  String? profilePictureUrl;
 
-  User({
+  UserYamble({
     required this.userId,
     required this.userName,
     required this.name,
-    required this.profilePictureUrl,
+    this.profilePictureUrl,
+    this.profilePictureFile,
   });
 }

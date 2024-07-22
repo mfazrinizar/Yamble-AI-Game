@@ -1,16 +1,17 @@
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_exit_app/flutter_exit_app.dart';
+import 'package:yamble_yap_to_gamble_ai_game/pages/auth/login_page.dart';
 import 'onboarding_base.dart';
 
-class OnboardingScreen extends StatefulWidget {
-  const OnboardingScreen({super.key});
+class OnboardingPage extends StatefulWidget {
+  const OnboardingPage({super.key});
 
   @override
-  OnboardingScreenState createState() => OnboardingScreenState();
+  State<OnboardingPage> createState() => _OnboardingPageState();
 }
 
-class OnboardingScreenState extends State<OnboardingScreen> {
+class _OnboardingPageState extends State<OnboardingPage> {
   int currentPage = 0;
   final PageController controller = PageController();
 
@@ -20,7 +21,7 @@ class OnboardingScreenState extends State<OnboardingScreen> {
       {
         "title": 'Welcome to Yamble Game!',
         "description":
-            'Yamble is an AI-based multiplayer game where you could play with your friends together.',
+            'Yamble is an AI-based multiplayer game where you can play with your friends together.',
         "imageLight": "assets/logo/logo.svg",
         "imageDark": "assets/logo/logo.svg",
         "isSvg": "true",
@@ -28,7 +29,7 @@ class OnboardingScreenState extends State<OnboardingScreen> {
       {
         "title": 'Yap to Gamble',
         "description":
-            'Yamble is a game where you can gamble on your yapping skill and win a game against your friends!',
+            'Gamble on your yapping skill and win a game against your friends!',
         "imageLight": "assets/images/gamble.svg",
         "imageDark": "assets/images/gamble.svg",
         "isSvg": "true",
@@ -37,8 +38,7 @@ class OnboardingScreenState extends State<OnboardingScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        title: const Text('Yamble'),
+        title: const Text('Yamble: Yap to Gamble AI Game'),
       ),
       body: PopScope(
         canPop: false,
@@ -52,8 +52,9 @@ class OnboardingScreenState extends State<OnboardingScreen> {
               dialogType: DialogType.question,
               animType: AnimType.scale,
               transitionAnimationDuration: const Duration(milliseconds: 200),
-              title: 'Exit App',
+              title: 'Exiting...',
               desc: 'Are you sure you want to exit the game?',
+              btnOkColor: Theme.of(context).primaryColor,
               btnOkText: 'Yes',
               btnCancelText: 'Cancel',
               btnOkOnPress: () async {
@@ -91,18 +92,15 @@ class OnboardingScreenState extends State<OnboardingScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const SizedBox(width: 20),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).primaryColor,
-                    ),
+                  FilledButton(
                     child: const Text('Skip'),
                     onPressed: () {
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //     builder: (context) => const LoginPage(),
-                      //   ),
-                      // );
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LoginPage(),
+                        ),
+                      );
                     },
                   ),
                   Row(
@@ -135,19 +133,16 @@ class OnboardingScreenState extends State<OnboardingScreen> {
                       },
                     ),
                   ),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).primaryColor,
-                    ),
+                  FilledButton(
                     child: const Text('Next'),
                     onPressed: () {
                       if (currentPage == onboardingData.length - 1) {
-                        // Navigator.pushAndRemoveUntil(
-                        //   context,
-                        //   MaterialPageRoute(
-                        //       builder: (context) => const LoginPage()),
-                        //   (Route<dynamic> route) => false,
-                        // );
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const LoginPage()),
+                          (Route<dynamic> route) => false,
+                        );
                       }
                       controller.nextPage(
                         duration: const Duration(milliseconds: 300),
