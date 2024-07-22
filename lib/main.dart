@@ -1,9 +1,11 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:json_theme/json_theme.dart';
 import 'package:yamble_yap_to_gamble_ai_game/firebase_options.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+import 'package:yamble_yap_to_gamble_ai_game/pages/home_page.dart';
 
 import 'dart:convert';
 
@@ -34,7 +36,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Yamble: Yap to Gamble AI Game',
       theme: theme,
-      home: const OnboardingPage(),
+      home: FirebaseAuth.instance.currentUser != null
+          ? const HomePage()
+          : const OnboardingPage(),
       builder: FlutterSmartDialog.init(),
     );
   }

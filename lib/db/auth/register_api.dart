@@ -22,6 +22,16 @@ class RegisterApi {
     required String userPassword,
   }) async {
     try {
+      // Check if the username is already used
+      QuerySnapshot userNameQuery = await _firestore
+          .collection('users')
+          .where('userName', isEqualTo: userName)
+          .get();
+
+      if (userNameQuery.docs.isNotEmpty) {
+        return 'USERNAME_ALREADY_IN_USE';
+      }
+
       // Register the user
       UserCredential userCredential =
           await _auth.createUserWithEmailAndPassword(

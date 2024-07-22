@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:yamble_yap_to_gamble_ai_game/db/auth/login_api.dart';
 import 'package:yamble_yap_to_gamble_ai_game/pages/auth/forget_password_page.dart';
 import 'package:yamble_yap_to_gamble_ai_game/pages/auth/register_page.dart';
+import 'package:yamble_yap_to_gamble_ai_game/pages/home_page.dart';
 import 'package:yamble_yap_to_gamble_ai_game/pages/onboarding/onboarding_page.dart';
 import 'package:yamble_yap_to_gamble_ai_game/utils/form_validator.dart';
 
@@ -189,6 +190,9 @@ class LoginState extends State<LoginPage> {
                                             isProcessing = true;
                                           });
                                           SmartDialog.showLoading(
+                                              maskColor: Theme.of(context)
+                                                  .primaryColor
+                                                  .withOpacity(0.5),
                                               msg: 'Processing...');
 
                                           final LoginApi loginApi = LoginApi();
@@ -209,8 +213,17 @@ class LoginState extends State<LoginPage> {
                                                   'Login successful.');
                                             }
 
-                                            // // If the login was successful, navigate to HomePage
-                                            // Get.offAll(() => const HomePage());
+                                            // If the login was successful, navigate to HomePage
+                                            if (context.mounted) {
+                                              Navigator.pushAndRemoveUntil(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      const HomePage(),
+                                                ),
+                                                (Route<dynamic> route) => false,
+                                              );
+                                            }
                                           } else {
                                             // If there was an error, show a message to the user
                                             if (!context.mounted) return;
@@ -270,6 +283,9 @@ class LoginState extends State<LoginPage> {
                                   'Register',
                                   style: TextStyle(fontSize: 18),
                                 ),
+                              ),
+                              const SizedBox(
+                                height: 10,
                               ),
                             ],
                           ),

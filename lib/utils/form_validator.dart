@@ -92,6 +92,14 @@ class FormValidator {
       return locale == 'en'
           ? 'Username must be at least 6 characters long.'
           : 'Nama pengguna harus memiliki panjang minimal 3 karakter.';
+    } else if (!RegExp(r'^[a-zA-Z0-9]+$').hasMatch(value)) {
+      return locale == 'en'
+          ? 'Username can only contain alphabets and numbers.'
+          : 'Nama pengguna hanya boleh berisi huruf dan angka.';
+    } else if (value.length > 10) {
+      return locale == 'en'
+          ? 'Username must be at most 10 characters long.'
+          : 'Nama pengguna harus memiliki panjang maksimal 10 karakter.';
     }
     return null;
   }

@@ -50,6 +50,8 @@ dependencies:
   image_picker: ^1.1.2
   device_info_plus: ^10.1.0
   permission_handler: ^11.3.1
+  syncfusion_flutter_charts: ^26.1.42
+  cached_network_image: ^3.3.1
  
 
 flutter_launcher_icons:

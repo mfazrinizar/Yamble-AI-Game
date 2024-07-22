@@ -4,7 +4,6 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:yamble_yap_to_gamble_ai_game/db/auth/forget_password_api.dart';
 import 'package:yamble_yap_to_gamble_ai_game/pages/auth/login_page.dart';
-import 'package:yamble_yap_to_gamble_ai_game/pages/auth/register_page.dart';
 import 'package:yamble_yap_to_gamble_ai_game/pages/onboarding/onboarding_page.dart';
 import 'package:yamble_yap_to_gamble_ai_game/utils/form_validator.dart';
 
@@ -143,6 +142,9 @@ class ForgetPasswordState extends State<ForgetPasswordPage> {
                                             isProcessing = true;
                                           });
                                           SmartDialog.showLoading(
+                                              maskColor: Theme.of(context)
+                                                  .primaryColor
+                                                  .withOpacity(0.5),
                                               msg: 'Processing...');
 
                                           final forgetPasswordApi =
@@ -218,6 +220,9 @@ class ForgetPasswordState extends State<ForgetPasswordPage> {
                                   '  Reset  ',
                                   style: TextStyle(fontSize: 20),
                                 ),
+                              ),
+                              const SizedBox(
+                                height: 10,
                               ),
                             ],
                           ),

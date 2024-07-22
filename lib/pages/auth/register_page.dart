@@ -249,8 +249,12 @@ class RegisterState extends State<RegisterPage> {
                                           isProcessing = true;
                                         });
                                         SmartDialog.showLoading(
+                                          maskColor: Theme.of(context)
+                                              .primaryColor
+                                              .withOpacity(0.5),
                                           msg: 'Registering...',
                                         );
+
                                         final RegisterApi registerApi =
                                             RegisterApi();
                                         String? result;
@@ -275,8 +279,12 @@ class RegisterState extends State<RegisterPage> {
                                           isProcessing = false;
                                         });
                                         if (context.mounted) {
-                                          if (result == 'success') {
+                                          if (result == 'SUCCESSFUL_SIR') {
                                             _showVerificationDialog(context);
+                                          } else if (result ==
+                                              'USERNAME_ALREADY_IN_USE') {
+                                            _showErrorDialog(context,
+                                                'The username is already in use. Please choose another username.');
                                           } else {
                                             if (result != null) {
                                               _showErrorDialog(context, result);
@@ -289,6 +297,9 @@ class RegisterState extends State<RegisterPage> {
                                 'Register',
                                 style: TextStyle(fontSize: 20),
                               ),
+                            ),
+                            const SizedBox(
+                              height: 10,
                             ),
                           ],
                         ),
