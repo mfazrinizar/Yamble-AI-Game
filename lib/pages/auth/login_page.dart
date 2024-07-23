@@ -208,11 +208,6 @@ class LoginState extends State<LoginPage> {
                                           });
                                           // Check the result
                                           if (result['status'] == 'success') {
-                                            if (context.mounted) {
-                                              SmartDialog.showToast(
-                                                  'Login successful.');
-                                            }
-
                                             // If the login was successful, navigate to HomePage
                                             if (context.mounted) {
                                               Navigator.pushAndRemoveUntil(
@@ -223,6 +218,10 @@ class LoginState extends State<LoginPage> {
                                                 ),
                                                 (Route<dynamic> route) => false,
                                               );
+                                              SmartDialog.showNotify(
+                                                  msg: 'Logged in successfully',
+                                                  notifyType:
+                                                      NotifyType.success);
                                             }
                                           } else {
                                             // If there was an error, show a message to the user

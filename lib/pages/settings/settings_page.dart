@@ -2,8 +2,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter_exit_app/flutter_exit_app.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:yamble_yap_to_gamble_ai_game/db/auth/logout_api.dart';
 import 'package:yamble_yap_to_gamble_ai_game/encrypted/secure_storage.dart';
+import 'package:yamble_yap_to_gamble_ai_game/pages/auth/login_page.dart';
+import 'package:yamble_yap_to_gamble_ai_game/pages/settings/about_developer_page.dart';
 import 'package:yamble_yap_to_gamble_ai_game/pages/settings/change_password_page.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -170,7 +174,13 @@ class _SettingsPageState extends State<SettingsPage> {
                           icon: Icons.info,
                           title: 'About Developer',
                           onTap: () {
-                            // Handle about developer action
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const AboutDeveloperPage(),
+                              ),
+                            );
                           },
                         ),
                         _buildSettingsTile(
@@ -187,8 +197,19 @@ class _SettingsPageState extends State<SettingsPage> {
                               btnCancelOnPress: () {},
                               btnOkColor: Theme.of(context).primaryColor,
                               btnOkOnPress: () async {
-                                await UserSecureStorage.clearAll();
-                                // Handle logout action
+                                await LogoutAPI().logout();
+                                if (context.mounted) {
+                                  Navigator.pushAndRemoveUntil(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const LoginPage(),
+                                    ),
+                                    (Route<dynamic> route) => false,
+                                  );
+                                  SmartDialog.showNotify(
+                                      msg: 'Logged out succesfully',
+                                      notifyType: NotifyType.success);
+                                }
                               },
                             ).show();
                           },
