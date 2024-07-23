@@ -4,6 +4,7 @@ import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter_exit_app/flutter_exit_app.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:yamble_yap_to_gamble_ai_game/encrypted/secure_storage.dart';
+import 'package:yamble_yap_to_gamble_ai_game/pages/settings/change_password_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -155,7 +156,13 @@ class _SettingsPageState extends State<SettingsPage> {
                           icon: Icons.lock,
                           title: 'Change Password',
                           onTap: () {
-                            // Handle change password action
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const ChangePasswordPage(),
+                              ),
+                            );
                           },
                         ),
                         _buildSettingsTile(
