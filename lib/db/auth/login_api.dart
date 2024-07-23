@@ -28,7 +28,7 @@ class LoginApi {
         };
       }
 
-      // Get the user type from Firestore
+      // Get the userName from Firestore
       DocumentSnapshot userDoc = await _firestore
           .collection('users')
           .doc(userCredential.user!.uid)
