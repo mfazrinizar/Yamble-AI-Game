@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_exit_app/flutter_exit_app.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:yamble_yap_to_gamble_ai_game/pages/join/join_page.dart';
+import 'package:yamble_yap_to_gamble_ai_game/pages/settings/settings_page.dart';
 import 'package:yamble_yap_to_gamble_ai_game/pages/stats/stats_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -34,8 +36,8 @@ class HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final List<Widget> children = [
       const StatsPage(),
-      const Center(child: Text('Join Page')),
-      const Center(child: Text('Settings Page')),
+      const JoinPage(),
+      const SettingsPage(),
     ];
     return PopScope(
       canPop: false,
@@ -49,8 +51,8 @@ class HomePageState extends State<HomePage> {
             dialogType: DialogType.question,
             animType: AnimType.scale,
             transitionAnimationDuration: const Duration(milliseconds: 200),
-            title: 'Exit App',
-            desc: 'Are you sure you want to exit the app?',
+            title: 'Exit Game',
+            desc: 'Are you sure you want to exit the game?',
             btnOkText: 'Yes',
             btnOkColor: Theme.of(context).primaryColor,
             btnCancelText: 'Cancel',
@@ -65,9 +67,11 @@ class HomePageState extends State<HomePage> {
       },
       child: Scaffold(
           appBar: AppBar(
-            shape: const RoundedRectangleBorder(
+            shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.vertical(
-                bottom: Radius.circular(15),
+                bottom: _currentTabIndex.value == 0
+                    ? const Radius.circular(20)
+                    : Radius.zero,
               ),
             ),
             backgroundColor: Theme.of(context).primaryColor,
@@ -130,9 +134,9 @@ class HomePageState extends State<HomePage> {
                       title: 'Statistics',
                       activeIcon: Icons.bar_chart_rounded),
                   TabItem(
-                    icon: Icons.add_circle,
+                    icon: Icons.videogame_asset,
                     title: 'Join',
-                    activeIcon: Icons.add_circle_rounded,
+                    activeIcon: Icons.videogame_asset_outlined,
                   ),
                   TabItem(
                       icon: Icons.settings,

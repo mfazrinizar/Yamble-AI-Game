@@ -238,6 +238,8 @@ class LoginState extends State<LoginPage> {
                                                   const Duration(
                                                       milliseconds: 200),
                                               btnOkText: "Ok",
+                                              btnOkColor: Theme.of(context)
+                                                  .primaryColor,
                                               title: 'Error Occured',
                                               desc: result['message'],
                                               btnOkOnPress: () {

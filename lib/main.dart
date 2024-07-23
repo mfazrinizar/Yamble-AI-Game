@@ -34,6 +34,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Yamble: Yap to Gamble AI Game',
       theme: theme,
       home: FirebaseAuth.instance.currentUser != null

@@ -103,4 +103,22 @@ class FormValidator {
     }
     return null;
   }
+
+  static String? validateJoin(String? value) {
+    const locale = 'en';
+    if (value == null || value.isEmpty) {
+      return locale == 'en'
+          ? 'Please enter the game codes.'
+          : 'Mohon masukkan kode gim.';
+    } else if (value.length != 6) {
+      return locale == 'en'
+          ? 'Game codes must be 6 characters long.'
+          : 'Kode gim harus memiliki panjang minimal 3 karakter.';
+    } else if (!RegExp(r'^[a-zA-Z0-9]+$').hasMatch(value)) {
+      return locale == 'en'
+          ? 'Game codes can only contain alphabets and numbers.'
+          : 'Kode gim hanya boleh berisi huruf dan angka.';
+    }
+    return null;
+  }
 }

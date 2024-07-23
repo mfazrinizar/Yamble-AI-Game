@@ -224,12 +224,23 @@ class RegisterState extends State<RegisterPage> {
                                           FormValidator.validateRePassword(
                                               passwordController.text,
                                               rePasswordController.text),
-                                      decoration: const InputDecoration(
+                                      decoration: InputDecoration(
                                         hintText: '********',
                                         labelText: 'Re-enter Password',
-                                        prefixIcon: Icon(Icons.lock),
+                                        prefixIcon: const Icon(Icons.lock),
+                                        suffixIcon: IconButton(
+                                          icon: Icon(rePasswordVisible
+                                              ? Icons.visibility
+                                              : Icons.visibility_off),
+                                          onPressed: () {
+                                            setState(() {
+                                              rePasswordVisible =
+                                                  !rePasswordVisible;
+                                            });
+                                          },
+                                        ),
                                       ),
-                                      obscureText: !passwordVisible,
+                                      obscureText: !rePasswordVisible,
                                     ),
                                   ],
                                 );
