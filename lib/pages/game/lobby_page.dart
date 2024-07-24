@@ -315,6 +315,7 @@ class _LobbyPageState extends State<LobbyPage> {
                               (context, index) {
                                 var player = players[index];
                                 var name = player['name'];
+                                var userName = player['userName'];
                                 var uid = player['uid'];
                                 var rank = player['rank'];
                                 var profilePictureUrl =
@@ -337,7 +338,7 @@ class _LobbyPageState extends State<LobbyPage> {
                                         Stack(
                                           children: [
                                             CircleAvatar(
-                                              radius: 30,
+                                              radius: 27,
                                               backgroundColor: Theme.of(context)
                                                   .primaryColor,
                                               child: ClipOval(
@@ -346,8 +347,8 @@ class _LobbyPageState extends State<LobbyPage> {
                                                   placeholder:
                                                       'assets/images/placeholder_loading.gif',
                                                   fit: BoxFit.cover,
-                                                  width: 60,
-                                                  height: 60,
+                                                  width: 50,
+                                                  height: 50,
                                                 ),
                                               ),
                                             ),
@@ -371,51 +372,54 @@ class _LobbyPageState extends State<LobbyPage> {
                                           ],
                                         ),
                                         const SizedBox(width: 10),
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            ConstrainedBox(
-                                              constraints: BoxConstraints(
-                                                maxWidth: width * 0.4,
-                                              ),
-                                              child: SingleChildScrollView(
-                                                scrollDirection:
-                                                    Axis.horizontal,
-                                                child: RichText(
-                                                  text: TextSpan(
-                                                    text: name,
-                                                    style: Theme.of(context)
-                                                        .textTheme
-                                                        .titleLarge,
-                                                    children: [
-                                                      TextSpan(
-                                                        text:
-                                                            (_auth.currentUser!
-                                                                        .uid ==
-                                                                    uid)
-                                                                ? ' (You)'
-                                                                : '',
-                                                        style: TextStyle(
-                                                          color:
-                                                              Theme.of(context)
-                                                                  .primaryColor,
-                                                          fontWeight:
-                                                              FontWeight.bold,
+                                        SizedBox(
+                                          width: width * 0.4,
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              ConstrainedBox(
+                                                constraints: BoxConstraints(
+                                                  maxWidth: width * 0.4,
+                                                ),
+                                                child: SingleChildScrollView(
+                                                  scrollDirection:
+                                                      Axis.horizontal,
+                                                  child: RichText(
+                                                    text: TextSpan(
+                                                      text: name,
+                                                      style: Theme.of(context)
+                                                          .textTheme
+                                                          .titleLarge,
+                                                      children: [
+                                                        TextSpan(
+                                                          text:
+                                                              (_auth.currentUser!
+                                                                          .uid ==
+                                                                      uid)
+                                                                  ? ' (You)'
+                                                                  : '',
+                                                          style: TextStyle(
+                                                            color: Theme.of(
+                                                                    context)
+                                                                .primaryColor,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
                                                         ),
-                                                      ),
-                                                    ],
+                                                      ],
+                                                    ),
                                                   ),
                                                 ),
                                               ),
-                                            ),
-                                            Text(
-                                              getRankTitle(rank),
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .titleMedium,
-                                            ),
-                                          ],
+                                              Text(
+                                                userName,
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .titleMedium,
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                         const Spacer(),
                                         Container(
@@ -429,6 +433,26 @@ class _LobbyPageState extends State<LobbyPage> {
                                               MainAxisAlignment.end,
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
+                                            ConstrainedBox(
+                                              constraints: BoxConstraints(
+                                                maxWidth: width * 0.22,
+                                              ),
+                                              child: SingleChildScrollView(
+                                                scrollDirection:
+                                                    Axis.horizontal,
+                                                child: Text(
+                                                  getRankTitle(rank),
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .titleLarge
+                                                      ?.copyWith(
+                                                          color: Theme.of(
+                                                                  context)
+                                                              .primaryColor),
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 10),
                                             CircleAvatar(
                                               backgroundColor: Theme.of(context)
                                                   .primaryColor
@@ -436,16 +460,6 @@ class _LobbyPageState extends State<LobbyPage> {
                                               child: SvgPicture.asset(
                                                 getRankAsset(rank),
                                               ),
-                                            ),
-                                            const SizedBox(width: 10),
-                                            Text(
-                                              getRankTitle(rank),
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .titleLarge
-                                                  ?.copyWith(
-                                                      color: Theme.of(context)
-                                                          .primaryColor),
                                             ),
                                           ],
                                         ),

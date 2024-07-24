@@ -195,47 +195,53 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                                         ),
                                       ),
                                       const SizedBox(width: 10),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          ConstrainedBox(
-                                            constraints: BoxConstraints(
-                                              maxWidth: width * 0.4,
-                                            ),
-                                            child: SingleChildScrollView(
-                                              scrollDirection: Axis.horizontal,
-                                              child: RichText(
-                                                text: TextSpan(
-                                                  text: name,
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .titleLarge,
-                                                  children: [
-                                                    TextSpan(
-                                                      text: (_currentUser.uid ==
-                                                              uid)
-                                                          ? ' (You)'
-                                                          : '',
-                                                      style: TextStyle(
-                                                        color: Theme.of(context)
-                                                            .primaryColor,
-                                                        fontWeight:
-                                                            FontWeight.bold,
+                                      SizedBox(
+                                        width: width * 0.4,
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            ConstrainedBox(
+                                              constraints: BoxConstraints(
+                                                maxWidth: width * 0.4,
+                                              ),
+                                              child: SingleChildScrollView(
+                                                scrollDirection:
+                                                    Axis.horizontal,
+                                                child: RichText(
+                                                  text: TextSpan(
+                                                    text: name,
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .titleLarge,
+                                                    children: [
+                                                      TextSpan(
+                                                        text:
+                                                            (_currentUser.uid ==
+                                                                    uid)
+                                                                ? ' (You)'
+                                                                : '',
+                                                        style: TextStyle(
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .primaryColor,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
                                                       ),
-                                                    ),
-                                                  ],
+                                                    ],
+                                                  ),
                                                 ),
                                               ),
                                             ),
-                                          ),
-                                          Text(
-                                            '$wins Wins',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .titleMedium,
-                                          ),
-                                        ],
+                                            Text(
+                                              '$wins Wins',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .titleMedium,
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                       const Spacer(),
                                       Container(
@@ -249,6 +255,24 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                                             MainAxisAlignment.end,
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
+                                          ConstrainedBox(
+                                            constraints: BoxConstraints(
+                                              maxWidth: width * 0.22,
+                                            ),
+                                            child: SingleChildScrollView(
+                                              scrollDirection: Axis.horizontal,
+                                              child: Text(
+                                                getRankTitle(rank),
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .titleLarge
+                                                    ?.copyWith(
+                                                        color: Theme.of(context)
+                                                            .primaryColor),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 10),
                                           CircleAvatar(
                                             backgroundColor: Theme.of(context)
                                                 .primaryColor
@@ -256,16 +280,6 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                                             child: SvgPicture.asset(
                                               getRankAsset(rank),
                                             ),
-                                          ),
-                                          const SizedBox(width: 10),
-                                          Text(
-                                            getRankTitle(rank),
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .titleLarge
-                                                ?.copyWith(
-                                                    color: Theme.of(context)
-                                                        .primaryColor),
                                           ),
                                         ],
                                       ),
