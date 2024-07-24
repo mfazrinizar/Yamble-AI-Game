@@ -190,7 +190,7 @@ class _JoinPageState extends State<JoinPage> {
                     subtitle:
                         const Text('For young gambler with yapping interest.'),
                     leading: Radio<String>(
-                      value: 'Easy',
+                      value: 'easy',
                       groupValue: _selectedDifficulty,
                       onChanged: (value) {
                         setState(() {
@@ -204,7 +204,7 @@ class _JoinPageState extends State<JoinPage> {
                     subtitle: const Text(
                         'A moderate yapping challenge for intermediate gambler.'),
                     leading: Radio<String>(
-                      value: 'Medium',
+                      value: 'medium',
                       groupValue: _selectedDifficulty,
                       onChanged: (value) {
                         setState(() {
@@ -218,7 +218,7 @@ class _JoinPageState extends State<JoinPage> {
                     subtitle: const Text(
                         'For experienced gambler seeking a tough yapping challenge.'),
                     leading: Radio<String>(
-                      value: 'Hard',
+                      value: 'hard',
                       groupValue: _selectedDifficulty,
                       onChanged: (value) {
                         setState(() {
@@ -241,15 +241,36 @@ class _JoinPageState extends State<JoinPage> {
                   onPressed: _selectedDifficulty != null
                       ? () async {
                           final gameApi = GameApi();
-                          bool success = await gameApi
-                              .createGame(_selectedDifficulty ?? 'Easy');
-                          if (success) {
+
+                          SmartDialog.showLoading(
+                            msg: 'Creating Game...',
+                            maskColor:
+                                Theme.of(context).primaryColor.withOpacity(0.5),
+                          );
+
+                          Map<String, dynamic> success = await gameApi
+                              .createGame(_selectedDifficulty ?? 'easy');
+
+                          SmartDialog.dismiss();
+
+                          if (success['status'] == 'SUCCESS') {
                             if (context.mounted) {
                               Navigator.of(context).pop();
                             }
-                            // Navigate to the lobby or game page
+                            if (context.mounted) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => LobbyPage(
+                                    joinCode: success['joinCode'],
+                                  ),
+                                ),
+                              );
+                            }
                           } else {
-                            // Handle game creation failure
+                            SmartDialog.showNotify(
+                                msg: 'Failed to create a game.',
+                                notifyType: NotifyType.error);
                           }
                         }
                       : null,

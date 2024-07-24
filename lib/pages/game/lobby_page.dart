@@ -250,6 +250,17 @@ class _LobbyPageState extends State<LobbyPage> {
 
                 Map<String, dynamic> gameData =
                     snapshot.data!.data() as Map<String, dynamic>;
+
+                bool gameActive = gameData['gameActive'];
+                if (!gameActive) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    Navigator.pop(context);
+                    SmartDialog.showNotify(
+                        msg: 'The Host cancelled the game.',
+                        notifyType: NotifyType.alert);
+                  });
+                }
+
                 players = gameData['players'];
 
                 return DraggableScrollableSheet(
@@ -306,6 +317,8 @@ class _LobbyPageState extends State<LobbyPage> {
                                 var name = player['name'];
                                 var uid = player['uid'];
                                 var rank = player['rank'];
+                                var profilePictureUrl =
+                                    player['profilePictureUrl'];
                                 var isHost =
                                     (index == 0); // Host is the first player
 
@@ -321,13 +334,41 @@ class _LobbyPageState extends State<LobbyPage> {
                                     ),
                                     child: Row(
                                       children: [
-                                        CircleAvatar(
-                                          backgroundColor:
-                                              Theme.of(context).primaryColor,
-                                          child: Icon(
-                                            isHost ? Icons.star : Icons.person,
-                                            color: Colors.white,
-                                          ),
+                                        Stack(
+                                          children: [
+                                            CircleAvatar(
+                                              radius: 30,
+                                              backgroundColor: Theme.of(context)
+                                                  .primaryColor,
+                                              child: ClipOval(
+                                                child: FadeInImage.assetNetwork(
+                                                  image: profilePictureUrl,
+                                                  placeholder:
+                                                      'assets/images/placeholder_loading.gif',
+                                                  fit: BoxFit.cover,
+                                                  width: 60,
+                                                  height: 60,
+                                                ),
+                                              ),
+                                            ),
+                                            Positioned(
+                                              right: 0,
+                                              bottom: 0,
+                                              child: CircleAvatar(
+                                                radius: 12.5,
+                                                backgroundColor: Colors.white,
+                                                child: Icon(
+                                                  isHost
+                                                      ? Icons.star
+                                                      : Icons.person,
+                                                  size:
+                                                      25, // Adjust the size as needed
+                                                  color: Theme.of(context)
+                                                      .primaryColor,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                         const SizedBox(width: 10),
                                         Column(

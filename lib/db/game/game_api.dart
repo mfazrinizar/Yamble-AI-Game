@@ -36,15 +36,19 @@ class GameApi {
     return joinCode;
   }
 
-  Future<bool> createGame(String difficulty) async {
+  Future<Map<String, dynamic>> createGame(String difficulty) async {
     String joinCode = await generateJoinCode();
     User? currentUser = _auth.currentUser;
+    difficulty = difficulty.toLowerCase();
 
     if (currentUser == null) {
       if (kDebugMode) {
         debugPrint('No user is signed in');
       }
-      return false;
+      return {
+        'joinCode': '',
+        'status': 'NOT-LOGGED-IN',
+      };
     }
 
     // Fetch user details from the leaderboard
@@ -54,7 +58,10 @@ class GameApi {
       if (kDebugMode) {
         debugPrint('User not found in leaderboard');
       }
-      return false;
+      return {
+        'joinCode': '',
+        'status': 'USER-NOT-FOUND-LEADERBOARD',
+      };
     }
     Map<String, dynamic> leaderboardData =
         leaderboardSnapshot.data() as Map<String, dynamic>;
@@ -80,7 +87,10 @@ class GameApi {
     // Add the auto-generated document ID as a field in the document
     await gameDocRef.update({'gameId': gameDocRef.id});
 
-    return true;
+    return {
+      'joinCode': joinCode,
+      'status': 'SUCCESS',
+    };
   }
 
   Future<String> joinGame(String joinCode) async {
@@ -115,6 +125,13 @@ class GameApi {
         debugPrint('Game is full');
       }
       return 'GAME-FULL';
+    }
+
+    if (players.any((player) => player['uid'] == currentUser.uid)) {
+      if (kDebugMode) {
+        debugPrint('User already joined the game');
+      }
+      return 'SUCCESS';
     }
 
     // Fetch user details from the leaderboard
