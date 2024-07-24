@@ -50,7 +50,7 @@ class _SettingsPageState extends State<SettingsPage> {
             height: height * 0.4,
             child: SizedBox(
               child: SvgPicture.asset(
-                'assets/images/settings.svg', // Replace with your SVG asset
+                'assets/images/settings.svg', 
               ),
             ),
           ),

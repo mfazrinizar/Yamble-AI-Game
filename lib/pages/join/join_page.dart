@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:yamble_yap_to_gamble_ai_game/db/game/game_api.dart';
+import 'package:yamble_yap_to_gamble_ai_game/pages/game/lobby_page.dart';
 import 'package:yamble_yap_to_gamble_ai_game/utils/form_validator.dart';
 
 class JoinPage extends StatefulWidget {
@@ -31,7 +34,7 @@ class _JoinPageState extends State<JoinPage> {
             height: height * 0.4,
             child: SizedBox(
               child: SvgPicture.asset(
-                'assets/images/game.svg', // Replace with your SVG asset
+                'assets/images/game.svg',
               ),
             ),
           ),
@@ -92,9 +95,52 @@ class _JoinPageState extends State<JoinPage> {
                             height: 20,
                           ),
                           FilledButton(
-                            onPressed: () {
+                            onPressed: () async {
                               if (_formKey.currentState!.validate()) {
-                                // Handle Join Game action
+                                final joinCode = joinCodeController.text;
+
+                                SmartDialog.showLoading(
+                                  msg: 'Joining Game...',
+                                  maskColor: Theme.of(context)
+                                      .primaryColor
+                                      .withOpacity(0.5),
+                                );
+                                final gameApi = GameApi();
+                                final joinStatus =
+                                    await gameApi.joinGame(joinCode);
+                                SmartDialog.dismiss();
+
+                                if (joinStatus == 'SUCCESS') {
+                                  if (context.mounted) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => LobbyPage(
+                                          joinCode: joinCode,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                } else if (joinStatus == 'NOT-LOGGED-IN') {
+                                  SmartDialog.showNotify(
+                                      msg:
+                                          'You are not logged in, please logout first.',
+                                      notifyType: NotifyType.error);
+                                } else if (joinStatus == 'GAME-NOT-FOUND') {
+                                  SmartDialog.showNotify(
+                                      msg:
+                                          'Game with code $joinCode not found.',
+                                      notifyType: NotifyType.failure);
+                                } else if (joinStatus == 'GAME-FULL') {
+                                  SmartDialog.showNotify(
+                                      msg: 'Game with code $joinCode is full.',
+                                      notifyType: NotifyType.warning);
+                                } else {
+                                  SmartDialog.showNotify(
+                                      msg:
+                                          'Failed to join game. Please try again.',
+                                      notifyType: NotifyType.error);
+                                }
                               }
                             },
                             child: const Text(
