@@ -1,7 +1,11 @@
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:yamble_yap_to_gamble_ai_game/db/game/game_api.dart';
 
 class LobbyPage extends StatefulWidget {
   final String joinCode;
@@ -14,10 +18,10 @@ class LobbyPage extends StatefulWidget {
 
 class _LobbyPageState extends State<LobbyPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   List players = [];
 
   bool _isHost = false;
+  DocumentSnapshot? _gameSnapshot;
 
   @override
   void initState() {
@@ -29,16 +33,18 @@ class _LobbyPageState extends State<LobbyPage> {
     User? currentUser = _auth.currentUser;
 
     if (currentUser != null) {
-      DocumentSnapshot gameSnapshot =
-          await _firestore.collection('games').doc(widget.joinCode).get();
+      final gameApi = GameApi();
+      DocumentSnapshot? gameSnapshot =
+          await gameApi.fetchGameByJoinCode(widget.joinCode);
 
-      if (gameSnapshot.exists) {
+      if (gameSnapshot != null) {
         Map<String, dynamic> gameData =
             gameSnapshot.data() as Map<String, dynamic>;
         players = gameData['players'];
 
         setState(() {
           _isHost = players.first['uid'] == currentUser.uid;
+          _gameSnapshot = gameSnapshot;
         });
       }
     }
@@ -85,11 +91,55 @@ class _LobbyPageState extends State<LobbyPage> {
   }
 
   Future<void> _startGame() async {
-    if (_isHost) {
-      await _firestore.collection('games').doc(widget.joinCode).update({
+    if (_isHost && _gameSnapshot != null) {
+      await _gameSnapshot!.reference.update({
         'gameActive': true,
       });
       // Navigate to the game screen or other actions to start the game
+    }
+  }
+
+  Future<void> _cancelGame(BuildContext context) async {
+    final gameApi = GameApi();
+
+    SmartDialog.showLoading(msg: 'Cancelling game...');
+
+    final cancelSuccess = await gameApi.cancelGame(widget.joinCode);
+
+    SmartDialog.dismiss();
+
+    if (cancelSuccess) {
+      if (context.mounted) {
+        Navigator.pop(context);
+        SmartDialog.showNotify(
+            msg: 'The game (${widget.joinCode}) is cancelled.',
+            notifyType: NotifyType.success);
+      }
+    } else {
+      SmartDialog.showNotify(
+          msg: 'Failed to leave the game.', notifyType: NotifyType.error);
+    }
+  }
+
+  Future<void> _leaveGame(BuildContext context) async {
+    final gameApi = GameApi();
+
+    SmartDialog.showLoading(msg: 'Leaving game...');
+
+    final leaveSuccess = await gameApi.leaveGame(widget.joinCode);
+
+    SmartDialog.dismiss();
+
+    if (leaveSuccess) {
+      if (context.mounted) {
+        Navigator.pop(context);
+        SmartDialog.showNotify(
+            msg: 'You have left the game (${widget.joinCode}).',
+            notifyType: NotifyType.success);
+      }
+    } else {
+      SmartDialog.showNotify(
+          msg: 'Failed to leave the game.', notifyType: NotifyType.error);
     }
   }
 
@@ -103,13 +153,32 @@ class _LobbyPageState extends State<LobbyPage> {
       backgroundColor: Theme.of(context).primaryColor,
       appBar: AppBar(
         backgroundColor: Theme.of(context).primaryColor,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back,
-            color: Colors.white,
-          ),
+        leading: BackButton(
+          color: Colors.white,
           onPressed: () {
-            Navigator.pop(context);
+            if (Navigator.canPop(context)) {
+              AwesomeDialog(
+                dismissOnTouchOutside: true,
+                context: context,
+                keyboardAware: true,
+                dismissOnBackKeyPress: false,
+                dialogType: DialogType.question,
+                animType: AnimType.scale,
+                transitionAnimationDuration: const Duration(milliseconds: 200),
+                title: 'Exit Lobby',
+                desc:
+                    'Are you sure you want to exit the lobby?${_isHost ? '\nYou are host, the game will be cancelled.' : ''}',
+                btnOkText: 'Yes',
+                btnOkColor: Theme.of(context).primaryColor,
+                btnCancelText: 'Cancel',
+                btnOkOnPress: () async => _isHost
+                    ? await _cancelGame(context)
+                    : await _leaveGame(context),
+                btnCancelOnPress: () {
+                  DismissType.btnCancel;
+                },
+              ).show();
+            }
           },
         ),
         centerTitle: true,
@@ -121,215 +190,255 @@ class _LobbyPageState extends State<LobbyPage> {
               ),
         ),
       ),
-      body: Stack(
-        children: [
-          // Background SVG image
-          Positioned(
-            top: -top,
-            left: 0,
-            width: width,
-            height: height * 0.4,
-            child: SizedBox(
-              child: SvgPicture.asset(
-                'assets/images/waiting.svg',
-              ),
-            ),
-          ),
-          StreamBuilder<DocumentSnapshot>(
-            stream:
-                _firestore.collection('games').doc(widget.joinCode).snapshots(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              }
-
-              if (!snapshot.hasData || !snapshot.data!.exists) {
-                return const Center(
-                  child: Text('Game not found'),
-                );
-              }
-
-              Map<String, dynamic> gameData =
-                  snapshot.data!.data() as Map<String, dynamic>;
-              List players = gameData['players'];
-
-              return DraggableScrollableSheet(
-                initialChildSize: 0.6,
-                minChildSize: 0.6,
-                maxChildSize: 1.0,
-                builder: (context, scrollController) {
-                  return Container(
-                    decoration: BoxDecoration(
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(32.0),
-                        topRight: Radius.circular(32.0),
-                      ),
-                      color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.5),
-                          spreadRadius: 2,
-                          blurRadius: 5,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: CustomScrollView(
-                      controller: scrollController,
-                      slivers: [
-                        const SliverToBoxAdapter(
-                          child: Column(
-                            children: [
-                              SizedBox(
-                                height: 10,
-                              ),
-                              Center(
-                                child: CircleAvatar(
-                                  child: Icon(Icons.people),
-                                ),
-                              ),
-                              SizedBox(
-                                height: 2,
-                              ),
-                            ],
-                          ),
-                        ),
-                        SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                            (context, index) {
-                              var player = players[index];
-                              var name = player['name'];
-                              var uid = player['uid'];
-                              var rank = player['rank'];
-                              var isHost =
-                                  (index == 0); // Host is the first player
-
-                              return Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Container(
-                                  padding: const EdgeInsets.all(8.0),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    color: Theme.of(context)
-                                        .primaryColor
-                                        .withOpacity(0.2),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      CircleAvatar(
-                                        backgroundColor:
-                                            Theme.of(context).primaryColor,
-                                        child: Icon(
-                                          isHost ? Icons.star : Icons.person,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 10),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          ConstrainedBox(
-                                            constraints: BoxConstraints(
-                                              maxWidth: width * 0.4,
-                                            ),
-                                            child: SingleChildScrollView(
-                                              scrollDirection: Axis.horizontal,
-                                              child: RichText(
-                                                text: TextSpan(
-                                                  text: name,
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .titleLarge,
-                                                  children: [
-                                                    TextSpan(
-                                                      text: (_auth.currentUser!
-                                                                  .uid ==
-                                                              uid)
-                                                          ? ' (You)'
-                                                          : '',
-                                                      style: TextStyle(
-                                                        color: Theme.of(context)
-                                                            .primaryColor,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          Text(
-                                            getRankTitle(rank),
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .titleMedium,
-                                          ),
-                                        ],
-                                      ),
-                                      const Spacer(),
-                                      Container(
-                                        width: 2,
-                                        height: 40,
-                                        color: Colors.white,
-                                      ),
-                                      const Spacer(),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.end,
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          CircleAvatar(
-                                            backgroundColor: Theme.of(context)
-                                                .primaryColor
-                                                .withOpacity(0.1),
-                                            child: SvgPicture.asset(
-                                              getRankAsset(rank),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 10),
-                                          Text(
-                                            getRankTitle(rank),
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .titleLarge
-                                                ?.copyWith(
-                                                    color: Theme.of(context)
-                                                        .primaryColor),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                            childCount: players.length,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              );
-            },
-          ),
-          if (_isHost)
+      body: PopScope(
+        canPop: false,
+        onPopInvoked: (didPop) {
+          if (!didPop) {
+            AwesomeDialog(
+              dismissOnTouchOutside: true,
+              context: context,
+              keyboardAware: true,
+              dismissOnBackKeyPress: false,
+              dialogType: DialogType.question,
+              animType: AnimType.scale,
+              transitionAnimationDuration: const Duration(milliseconds: 200),
+              title: 'Exit Lobby',
+              desc:
+                  'Are you sure you want to exit the lobby?${_isHost ? '\nYou are host, the game will be cancelled.' : ''}',
+              btnOkText: 'Yes',
+              btnOkColor: Theme.of(context).primaryColor,
+              btnCancelText: 'Cancel',
+              btnOkOnPress: () async => _isHost
+                  ? await _cancelGame(context)
+                  : await _leaveGame(context),
+              btnCancelOnPress: () {
+                DismissType.btnCancel;
+              },
+            ).show();
+          }
+        },
+        child: Stack(
+          children: [
+            // Background SVG image
             Positioned(
-              bottom: 20,
+              top: -top + 10,
               left: 0,
-              right: 0,
-              child: Center(
-                child: ElevatedButton(
-                  onPressed: players.length >= 2 ? _startGame : null,
-                  child: const Text('Start Game'),
+              width: width,
+              height: height * 0.4,
+              child: SizedBox(
+                child: SvgPicture.asset(
+                  'assets/images/waiting.svg',
                 ),
               ),
             ),
-        ],
+            StreamBuilder<DocumentSnapshot>(
+              stream: _gameSnapshot != null
+                  ? _gameSnapshot!.reference.snapshots()
+                  : const Stream<DocumentSnapshot>.empty(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+
+                if (!snapshot.hasData || !snapshot.data!.exists) {
+                  return const Center(
+                    child: Text('Game not found'),
+                  );
+                }
+
+                Map<String, dynamic> gameData =
+                    snapshot.data!.data() as Map<String, dynamic>;
+                players = gameData['players'];
+
+                return DraggableScrollableSheet(
+                  initialChildSize: 0.6,
+                  minChildSize: 0.6,
+                  maxChildSize: 1.0,
+                  builder: (context, scrollController) {
+                    return Container(
+                      decoration: BoxDecoration(
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(32.0),
+                          topRight: Radius.circular(32.0),
+                        ),
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.5),
+                            spreadRadius: 2,
+                            blurRadius: 5,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: CustomScrollView(
+                        controller: scrollController,
+                        slivers: [
+                          SliverToBoxAdapter(
+                              child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const SizedBox(height: 10),
+                              const CircleAvatar(
+                                child: Icon(Icons.people),
+                              ),
+                              const SizedBox(height: 5),
+                              TextButton.icon(
+                                icon: const Icon(Icons.copy),
+                                onPressed: () {
+                                  Clipboard.setData(
+                                          ClipboardData(text: widget.joinCode))
+                                      .then((_) {
+                                    SmartDialog.showToast(
+                                        'Join Code copied to clipboard!');
+                                  });
+                                },
+                                label: Text(widget.joinCode),
+                              ),
+                            ],
+                          )),
+                          SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                                var player = players[index];
+                                var name = player['name'];
+                                var uid = player['uid'];
+                                var rank = player['rank'];
+                                var isHost =
+                                    (index == 0); // Host is the first player
+
+                                return Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(8.0),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      color: Theme.of(context)
+                                          .primaryColor
+                                          .withOpacity(0.2),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        CircleAvatar(
+                                          backgroundColor:
+                                              Theme.of(context).primaryColor,
+                                          child: Icon(
+                                            isHost ? Icons.star : Icons.person,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            ConstrainedBox(
+                                              constraints: BoxConstraints(
+                                                maxWidth: width * 0.4,
+                                              ),
+                                              child: SingleChildScrollView(
+                                                scrollDirection:
+                                                    Axis.horizontal,
+                                                child: RichText(
+                                                  text: TextSpan(
+                                                    text: name,
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .titleLarge,
+                                                    children: [
+                                                      TextSpan(
+                                                        text:
+                                                            (_auth.currentUser!
+                                                                        .uid ==
+                                                                    uid)
+                                                                ? ' (You)'
+                                                                : '',
+                                                        style: TextStyle(
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .primaryColor,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            Text(
+                                              getRankTitle(rank),
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .titleMedium,
+                                            ),
+                                          ],
+                                        ),
+                                        const Spacer(),
+                                        Container(
+                                          width: 2,
+                                          height: 40,
+                                          color: Colors.white,
+                                        ),
+                                        const Spacer(),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            CircleAvatar(
+                                              backgroundColor: Theme.of(context)
+                                                  .primaryColor
+                                                  .withOpacity(0.1),
+                                              child: SvgPicture.asset(
+                                                getRankAsset(rank),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 10),
+                                            Text(
+                                              getRankTitle(rank),
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .titleLarge
+                                                  ?.copyWith(
+                                                      color: Theme.of(context)
+                                                          .primaryColor),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                              childCount: players.length,
+                            ),
+                          ),
+                          if (_isHost)
+                            SliverToBoxAdapter(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: FilledButton(
+                                  onPressed:
+                                      players.length >= 2 ? _startGame : null,
+                                  child: const Text(
+                                    'Start Game',
+                                    style: TextStyle(fontSize: 20),
+                                  ),
+                                ),
+                              ),
+                            )
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

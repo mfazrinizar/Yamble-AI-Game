@@ -15,6 +15,7 @@ class JoinPage extends StatefulWidget {
 class _JoinPageState extends State<JoinPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController joinCodeController = TextEditingController();
+  String? _selectedDifficulty;
 
   @override
   Widget build(BuildContext context) {
@@ -153,7 +154,7 @@ class _JoinPageState extends State<JoinPage> {
                           ),
                           OutlinedButton(
                             onPressed: () {
-                              // Handle Create a Game action
+                              _showDifficultyDialog(context);
                             },
                             child: const Text(
                               'Create a Game',
@@ -170,6 +171,95 @@ class _JoinPageState extends State<JoinPage> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showDifficultyDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Select Difficulty'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ListTile(
+                    title: const Text('Easy'),
+                    subtitle:
+                        const Text('For young gambler with yapping interest.'),
+                    leading: Radio<String>(
+                      value: 'Easy',
+                      groupValue: _selectedDifficulty,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedDifficulty = value;
+                        });
+                      },
+                    ),
+                  ),
+                  ListTile(
+                    title: const Text('Medium'),
+                    subtitle: const Text(
+                        'A moderate yapping challenge for intermediate gambler.'),
+                    leading: Radio<String>(
+                      value: 'Medium',
+                      groupValue: _selectedDifficulty,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedDifficulty = value;
+                        });
+                      },
+                    ),
+                  ),
+                  ListTile(
+                    title: const Text('Hard'),
+                    subtitle: const Text(
+                        'For experienced gambler seeking a tough yapping challenge.'),
+                    leading: Radio<String>(
+                      value: 'Hard',
+                      groupValue: _selectedDifficulty,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedDifficulty = value;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _selectedDifficulty = null;
+                  },
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: _selectedDifficulty != null
+                      ? () async {
+                          final gameApi = GameApi();
+                          bool success = await gameApi
+                              .createGame(_selectedDifficulty ?? 'Easy');
+                          if (success) {
+                            if (context.mounted) {
+                              Navigator.of(context).pop();
+                            }
+                            // Navigate to the lobby or game page
+                          } else {
+                            // Handle game creation failure
+                          }
+                        }
+                      : null,
+                  child: const Text('Continue'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

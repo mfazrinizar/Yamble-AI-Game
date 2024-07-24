@@ -59,7 +59,7 @@ class GameApi {
     Map<String, dynamic> leaderboardData =
         leaderboardSnapshot.data() as Map<String, dynamic>;
 
-    await _firestore.collection('games').doc(joinCode).set({
+    DocumentReference gameDocRef = await _firestore.collection('games').add({
       'joinCode': joinCode,
       'gameActive': true,
       'difficulty': difficulty,
@@ -73,8 +73,12 @@ class GameApi {
           'rank': leaderboardData['rank'],
         }
       ],
-      'rounds': []
+      'rounds': [],
+      'gameId': '',
     });
+
+    // Add the auto-generated document ID as a field in the document
+    await gameDocRef.update({'gameId': gameDocRef.id});
 
     return true;
   }
@@ -89,17 +93,21 @@ class GameApi {
       return 'NOT-LOGGED-IN';
     }
 
-    DocumentSnapshot gameSnapshot =
-        await _firestore.collection('games').doc(joinCode).get();
+    QuerySnapshot gameSnapshot = await _firestore
+        .collection('games')
+        .where('joinCode', isEqualTo: joinCode)
+        .where('gameActive', isEqualTo: true)
+        .get();
 
-    if (!gameSnapshot.exists) {
+    if (gameSnapshot.docs.isEmpty) {
       if (kDebugMode) {
         debugPrint('Game not found');
       }
       return 'GAME-NOT-FOUND';
     }
 
-    Map<String, dynamic> gameData = gameSnapshot.data() as Map<String, dynamic>;
+    DocumentSnapshot gameDoc = gameSnapshot.docs.first;
+    Map<String, dynamic> gameData = gameDoc.data() as Map<String, dynamic>;
     List players = gameData['players'];
 
     if (players.length >= 3) {
@@ -129,9 +137,7 @@ class GameApi {
       'rank': leaderboardData['rank'],
     });
 
-    await _firestore.collection('games').doc(joinCode).update({
-      'players': players,
-    });
+    await gameDoc.reference.update({'players': players});
 
     return 'SUCCESS';
   }
@@ -173,17 +179,21 @@ class GameApi {
     }
 
     // Check if current user is the host
-    DocumentSnapshot gameSnapshot =
-        await _firestore.collection('games').doc(joinCode).get();
+    QuerySnapshot gameSnapshot = await _firestore
+        .collection('games')
+        .where('joinCode', isEqualTo: joinCode)
+        .where('gameActive', isEqualTo: true)
+        .get();
 
-    if (!gameSnapshot.exists) {
+    if (gameSnapshot.docs.isEmpty) {
       if (kDebugMode) {
         debugPrint('Game not found');
       }
       return false;
     }
 
-    Map<String, dynamic> gameData = gameSnapshot.data() as Map<String, dynamic>;
+    DocumentSnapshot gameDoc = gameSnapshot.docs.first;
+    Map<String, dynamic> gameData = gameDoc.data() as Map<String, dynamic>;
     List players = gameData['players'];
     if (players.first['uid'] != currentUser.uid) {
       if (kDebugMode) {
@@ -203,7 +213,7 @@ class GameApi {
       'startedAt': FieldValue.serverTimestamp(),
     });
 
-    await _firestore.collection('games').doc(joinCode).update({
+    await gameDoc.reference.update({
       'rounds': rounds,
     });
 
@@ -275,45 +285,58 @@ class GameApi {
       return false;
     }
 
-    DocumentSnapshot gameSnapshot =
-        await _firestore.collection('games').doc(joinCode).get();
+    QuerySnapshot gameSnapshot = await _firestore
+        .collection('games')
+        .where('joinCode', isEqualTo: joinCode)
+        .where('gameActive', isEqualTo: true)
+        .get();
 
-    if (!gameSnapshot.exists) {
+    if (gameSnapshot.docs.isEmpty) {
       if (kDebugMode) {
         debugPrint('Game not found');
       }
       return false;
     }
 
-    Map<String, dynamic> gameData = gameSnapshot.data() as Map<String, dynamic>;
+    DocumentSnapshot gameDoc = gameSnapshot.docs.first;
+    Map<String, dynamic> gameData = gameDoc.data() as Map<String, dynamic>;
     List rounds = gameData['rounds'];
 
     if (rounds.isEmpty) {
       if (kDebugMode) {
-        debugPrint('No rounds available');
+        debugPrint('No active round found');
       }
       return false;
     }
 
     Map<String, dynamic> currentRound = rounds.last;
-    String scenario = currentRound['scenario'];
+
+    if (currentRound['scenario'] == null) {
+      if (kDebugMode) {
+        debugPrint('No scenario found for the current round');
+      }
+      return false;
+    }
+
+    // Evaluate the solution
+    final evaluation = await evaluateSolution(
+      solution,
+      currentRound['scenario'],
+      gameData['difficulty'],
+    );
+
+    // Append the solution and its evaluation to the current round
     List solutions = currentRound['solutions'];
-    String difficulty = gameData['difficulty'];
-
-    // Evaluate the solution immediately
-    final evaluation = await evaluateSolution(solution, scenario, difficulty);
-
     solutions.add({
       'uid': currentUser.uid,
       'solution': solution,
       'evaluation': evaluation['response'],
       'isSuccess': evaluation['isSuccess'],
-      'submittedAt': FieldValue.serverTimestamp(),
     });
 
-    await _firestore.collection('games').doc(joinCode).update({
-      'rounds': rounds,
-    });
+    currentRound['solutions'] = solutions;
+
+    await gameDoc.reference.update({'rounds': rounds});
 
     return true;
   }
@@ -328,18 +351,22 @@ class GameApi {
       return false;
     }
 
-    // Check if current user is the host
-    DocumentSnapshot gameSnapshot =
-        await _firestore.collection('games').doc(joinCode).get();
+    // Fetch the game document using the joinCode
+    QuerySnapshot gameSnapshot = await _firestore
+        .collection('games')
+        .where('joinCode', isEqualTo: joinCode)
+        .where('gameActive', isEqualTo: true)
+        .get();
 
-    if (!gameSnapshot.exists) {
+    if (gameSnapshot.docs.isEmpty) {
       if (kDebugMode) {
         debugPrint('Game not found');
       }
       return false;
     }
 
-    Map<String, dynamic> gameData = gameSnapshot.data() as Map<String, dynamic>;
+    DocumentSnapshot gameDoc = gameSnapshot.docs.first;
+    Map<String, dynamic> gameData = gameDoc.data() as Map<String, dynamic>;
     List players = gameData['players'];
     if (players.first['uid'] != currentUser.uid) {
       if (kDebugMode) {
@@ -357,7 +384,7 @@ class GameApi {
     Map<String, dynamic> currentRound = rounds.last;
     currentRound['endedAt'] = FieldValue.serverTimestamp();
 
-    await _firestore.collection('games').doc(joinCode).update({
+    await gameDoc.reference.update({
       'rounds': rounds,
     });
 
@@ -374,18 +401,22 @@ class GameApi {
       return false;
     }
 
-    // Check if current user is the host
-    DocumentSnapshot gameSnapshot =
-        await _firestore.collection('games').doc(joinCode).get();
+    // Fetch the game document using the joinCode
+    QuerySnapshot gameSnapshot = await _firestore
+        .collection('games')
+        .where('joinCode', isEqualTo: joinCode)
+        .where('gameActive', isEqualTo: true)
+        .get();
 
-    if (!gameSnapshot.exists) {
+    if (gameSnapshot.docs.isEmpty) {
       if (kDebugMode) {
         debugPrint('Game not found');
       }
       return false;
     }
 
-    Map<String, dynamic> gameData = gameSnapshot.data() as Map<String, dynamic>;
+    DocumentSnapshot gameDoc = gameSnapshot.docs.first;
+    Map<String, dynamic> gameData = gameDoc.data() as Map<String, dynamic>;
     List players = gameData['players'];
     if (players.first['uid'] != currentUser.uid) {
       if (kDebugMode) {
@@ -434,10 +465,111 @@ class GameApi {
       });
     }
 
-    await _firestore.collection('games').doc(joinCode).update({
+    await gameDoc.reference.update({
       'gameActive': false,
     });
 
     return true;
+  }
+
+  Future<bool> cancelGame(String joinCode) async {
+    User? currentUser = _auth.currentUser;
+
+    if (currentUser == null) {
+      if (kDebugMode) {
+        debugPrint('No user is signed in');
+      }
+      return false;
+    }
+
+    // Fetch the game document using the joinCode
+    QuerySnapshot gameSnapshot = await _firestore
+        .collection('games')
+        .where('joinCode', isEqualTo: joinCode)
+        .where('gameActive', isEqualTo: true)
+        .get();
+
+    if (gameSnapshot.docs.isEmpty) {
+      if (kDebugMode) {
+        debugPrint('Game not found');
+      }
+      return false;
+    }
+
+    DocumentSnapshot gameDoc = gameSnapshot.docs.first;
+    Map<String, dynamic> gameData = gameDoc.data() as Map<String, dynamic>;
+    List players = gameData['players'];
+    if (players.first['uid'] != currentUser.uid) {
+      if (kDebugMode) {
+        debugPrint('Only the host can cancel the game');
+      }
+      return false;
+    }
+
+    // Set gameActive to false to cancel the game
+    await gameDoc.reference.update({
+      'gameActive': false,
+    });
+
+    if (kDebugMode) {
+      debugPrint('Game cancelled successfully');
+    }
+    return true;
+  }
+
+  Future<bool> leaveGame(String joinCode) async {
+    User? currentUser = _auth.currentUser;
+
+    if (currentUser == null) {
+      if (kDebugMode) {
+        debugPrint('No user is signed in');
+      }
+      return false;
+    }
+
+    // Fetch the game document using the joinCode
+    QuerySnapshot gameSnapshot = await _firestore
+        .collection('games')
+        .where('joinCode', isEqualTo: joinCode)
+        .where('gameActive', isEqualTo: true)
+        .get();
+
+    if (gameSnapshot.docs.isEmpty) {
+      if (kDebugMode) {
+        debugPrint('Game not found');
+      }
+      return false;
+    }
+
+    DocumentSnapshot gameDoc = gameSnapshot.docs.first;
+    Map<String, dynamic> gameData = gameDoc.data() as Map<String, dynamic>;
+    List players = gameData['players'];
+
+    // Remove the current user from the players list
+    players.removeWhere((player) => player['uid'] == currentUser.uid);
+
+    await gameDoc.reference.update({
+      'players': players,
+    });
+
+    if (kDebugMode) {
+      debugPrint('Player left the game successfully');
+    }
+    return true;
+  }
+
+  Future<DocumentSnapshot?> fetchGameByJoinCode(String joinCode) async {
+    QuerySnapshot querySnapshot = await _firestore
+        .collection('games')
+        .where('joinCode', isEqualTo: joinCode)
+        .where('gameActive', isEqualTo: true)
+        .limit(1)
+        .get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      return querySnapshot.docs.first;
+    }
+
+    return null;
   }
 }
