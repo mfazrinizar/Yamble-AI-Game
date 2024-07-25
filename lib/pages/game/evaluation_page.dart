@@ -5,27 +5,29 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:flutter_countdown_timer/flutter_countdown_timer.dart';
 import 'package:yamble_yap_to_gamble_ai_game/db/game/game_api.dart';
-import 'package:yamble_yap_to_gamble_ai_game/pages/game/evaluation_page.dart';
 import 'package:yamble_yap_to_gamble_ai_game/pages/home_page.dart';
 import 'package:yamble_yap_to_gamble_ai_game/utils/form_validator.dart';
 
-class GamePage extends StatefulWidget {
+class EvaluationPage extends StatefulWidget {
   final String joinCode;
 
-  const GamePage({super.key, required this.joinCode});
+  const EvaluationPage({super.key, required this.joinCode});
 
   @override
-  State<GamePage> createState() => _GamePageState();
+  State<EvaluationPage> createState() => _EvaluationPageState();
 }
 
-class _GamePageState extends State<GamePage> {
+class _EvaluationPageState extends State<EvaluationPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final TextEditingController _solutionController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   List players = [];
   bool _isHost = false;
   bool _currentRoundEnded = false;
+  int _currentEvaluation = 0;
   int _amountOfRound = 0;
+  String _currentEvaluationText = '';
+  bool _currentEvaluationSuccess = false;
   String _titleOfSolutionOwner = 'Your Solution';
   bool _solutionTextFormDisabled = false;
   int _numberOfPlayers = 0;
@@ -132,8 +134,8 @@ class _GamePageState extends State<GamePage> {
   //   }
   // }
 
-  Future<bool> _submitSolution() async {
-    if (_isSubmitting || _solutionController.text.isEmpty) return false;
+  Future<void> _submitSolution() async {
+    if (_isSubmitting || _solutionController.text.isEmpty) return;
 
     setState(() {
       _isSubmitting = true;
@@ -157,19 +159,11 @@ class _GamePageState extends State<GamePage> {
     if (success) {
       SmartDialog.showNotify(
           msg: 'Solution Submitted!', notifyType: NotifyType.success);
-      if (mounted) {
-        SmartDialog.showLoading(
-          msg: 'Waiting for other players...',
-          maskColor: Theme.of(context).primaryColor.withOpacity(0.5),
-        );
-      }
     } else {
       SmartDialog.showNotify(
           msg: 'Failed to submit the solution.', notifyType: NotifyType.error);
-      return false;
     }
     endTime = 0;
-    return true;
   }
 
   Future<void> _cancelGame(BuildContext context) async {
@@ -375,50 +369,37 @@ class _GamePageState extends State<GamePage> {
                       });
                     }
 
-                    if (_allPlayerSolutionSubmitted) {
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => EvaluationPage(
-                              joinCode: widget.joinCode,
-                            ),
-                          ),
-                          (Route<dynamic> route) => false,
-                        );
-                        SmartDialog.showNotify(
-                            msg: 'All players have submitted the solution!.',
-                            notifyType: NotifyType.alert);
-                      });
-                    }
-
                     // if (_allPlayerSolutionSubmitted) {
-                    //   for (var solution
-                    //       in gameData['rounds'].last['solutions']) {
-                    //     _solutionController.text = solution['solution'];
-
-                    //     // Find the player in the 'players' array whose 'uid' matches the current solution's 'uid'
-                    //     var player = gameData['players'].firstWhere(
-                    //         (player) => player['uid'] == solution['uid']);
-                    //     _titleOfSolutionOwner = player['name'];
-
-                    //     endTime =
-                    //         DateTime.now().millisecondsSinceEpoch + 1000 * 15;
-
-                    //     // Wait for 10 seconds before showing the next solution
-                    //     Future.delayed(const Duration(seconds: 15)).then((_) {
-                    //       // Reset the solution text form
-                    //       _solutionController.clear();
-
-                    //       // Reset the title of the solution owner
-                    //       _titleOfSolutionOwner = 'Your Solution';
-
-                    //       // Reset the end time
-                    //       endTime = DateTime.now().millisecondsSinceEpoch +
-                    //           1000 * 60 * 1;
-                    //     });
-                    //   }
+                    //   final solution = gameData['rounds']
+                    //       .last['solutions']
+                    //       .firstWhere((solution) =>
+                    //           solution['uid'] == _auth.currentUser!.uid);
+                    //   _solutionController.text = solution['solution'];
+                    //   var player = gameData['players'].firstWhere(
+                    //       (player) => player['uid'] == solution['uid']);
+                    //   _titleOfSolutionOwner = player['name'];
                     // }
+
+                    if (_allPlayerSolutionSubmitted) {
+                      for (var solution
+                          in gameData['rounds'].last['solutions']) {
+                        _solutionController.text = solution['solution'];
+
+                        // Find the player in the 'players' array whose 'uid' matches the current solution's 'uid'
+                        var player = gameData['players'].firstWhere(
+                            (player) => player['uid'] == solution['uid']);
+                        _titleOfSolutionOwner = player['name'];
+                        _currentEvaluationText = solution['evaluation'];
+                        _currentEvaluationSuccess = solution['isSuccess'];
+
+                        endTime =
+                            DateTime.now().millisecondsSinceEpoch + 1000 * 15;
+
+                        // Wait for 15 seconds before showing the next solution
+                        Future.delayed(const Duration(seconds: 15));
+                        _currentEvaluation++;
+                      }
+                    }
                     _gameActive = gameData['gameActive'];
                     if (!_gameActive) {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -503,13 +484,9 @@ class _GamePageState extends State<GamePage> {
                           const SizedBox(height: 20),
                           CountdownTimer(
                             endTime: endTime,
-                            onEnd: () async {
+                            onEnd: () {
                               if (!_isSubmitting) {
-                                final response = await _submitSolution();
-
-                                if (response) {
-                                  SmartDialog.dismiss();
-                                }
+                                _submitSolution();
                               }
                             },
                             widgetBuilder: (_, time) {
@@ -559,19 +536,38 @@ class _GamePageState extends State<GamePage> {
                             style: const TextStyle(color: Colors.white),
                           ),
                           const SizedBox(height: 20),
-                          if (!_currentRoundEnded)
-                            ElevatedButton(
-                              onPressed: () {
-                                if (_formKey.currentState!.validate()) {
-                                  _submitSolution();
-                                }
-                              },
-                              child: const Text(
-                                'Submit Solution',
-                                style: TextStyle(fontSize: 18),
-                              ),
+                          Text(
+                            'Evaluation',
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context)
+                                  .secondaryHeaderColor
+                                  .withOpacity(0.2),
+                              border: Border.all(color: Colors.white),
+                              borderRadius: BorderRadius.circular(16.0),
                             ),
-                          if (_currentRoundEnded && _isHost)
+                            child: Text(
+                              "$_currentEvaluationText\nSolution Yapping: ${_currentEvaluationSuccess ? "Success" : "Fail"}",
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge
+                                  ?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          if (_currentEvaluation == players.length &&
+                              _currentRoundEnded &&
+                              _isHost)
                             Column(
                               children: [
                                 const SizedBox(
