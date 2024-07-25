@@ -29,11 +29,13 @@ class _GamePageState extends State<GamePage> {
   DocumentSnapshot? _gameSnapshot;
   String scenario = '';
   bool _isSubmitting = false;
-  int endTime = DateTime.now().millisecondsSinceEpoch + 1000 * 9999; // 1 minute
+  late int endTime;
 
   @override
   void initState() {
     super.initState();
+    endTime = DateTime.now().millisecondsSinceEpoch + 1000 * 9999;
+
     _checkHostStatus();
   }
 
@@ -317,22 +319,11 @@ class _GamePageState extends State<GamePage> {
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: StreamBuilder<DocumentSnapshot>(
-                  stream: _gameSnapshot != null
-                      ? _gameSnapshot!.reference.snapshots()
-                      : const Stream<DocumentSnapshot>.empty(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-
-                    if (snapshot.hasError) {
-                      return const Center(child: Text('Something went wrong.'));
-                    }
-
-                    if (!snapshot.hasData || !snapshot.data!.exists) {
-                      return const Center(child: Text('Game not found.'));
-                    }
-
+                stream: _gameSnapshot != null
+                    ? _gameSnapshot!.reference.snapshots()
+                    : const Stream<DocumentSnapshot>.empty(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
                     _gameSnapshot = snapshot.data;
                     final gameData =
                         _gameSnapshot!.data() as Map<String, dynamic>;
@@ -525,7 +516,21 @@ class _GamePageState extends State<GamePage> {
                         ],
                       ),
                     );
-                  }),
+                  } else if (snapshot.hasError) {
+                    return const Center(child: Text('Something went wrong.'));
+                  } else if (!snapshot.hasData || !snapshot.data!.exists) {
+                    return const Center(child: Text('Game not found.'));
+                  } else if (snapshot.connectionState ==
+                      ConnectionState.waiting) {
+                    return const Center(
+                        child: CircularProgressIndicator(
+                      color: Colors.white,
+                    ));
+                  } else {
+                    return const Center(child: Text('Something went wrong.'));
+                  }
+                },
+              ),
             ),
           ),
         ),
