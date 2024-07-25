@@ -168,7 +168,7 @@ class GameApi {
     difficulty = difficulty.toLowerCase();
 
     final prompt =
-        'The current game difficulty is $difficulty where there are easy, medium and hard difficulty. The harder the difficulty, the more complex the scenario MUST be. Generate a scenario for the game with maximum 150 characters, BE STRAIGHT FORWARD TO SCENARIO:';
+        'The current game difficulty is $difficulty where there are easy, medium and hard difficulty. Give ONLY ONE the scenario for $difficulty. The harder the difficulty, the more complex the scenario MUST be. Generate a scenario for the game with maximum 150 characters, BE MINDBLOWING, STRAIGHT FORWARD & CLEAR INSTRUCTION TO SCENARIO. NO NEED TO REPEAT WORD LIKE **SCENARIO** OR **$difficulty**.';
     final response = await model.generateContent(
       [Content.text(prompt)],
       generationConfig: GenerationConfig(
@@ -178,11 +178,14 @@ class GameApi {
                 ? 0.75
                 : 1.0,
         maxOutputTokens: 150,
-        responseMimeType: 'application/json',
       ),
     );
 
-    return '{"response": "${response.text?.trim()}"}';
+    if (kDebugMode) {
+      debugPrint('Scenario: ${response.text?.trim()}');
+    }
+
+    return '${response.text?.trim()}';
   }
 
   Future<bool> startRound(String joinCode) async {
@@ -224,10 +227,11 @@ class GameApi {
 
     // Start a new round with the scenario
     List rounds = gameData['rounds'];
+
     rounds.add({
       'scenario': scenario,
       'solutions': [],
-      'startedAt': FieldValue.serverTimestamp(),
+      'ended': false,
     });
 
     await gameDoc.reference.update({
@@ -399,7 +403,7 @@ class GameApi {
     }
 
     Map<String, dynamic> currentRound = rounds.last;
-    currentRound['endedAt'] = FieldValue.serverTimestamp();
+    currentRound['ended'] = true;
 
     await gameDoc.reference.update({
       'rounds': rounds,

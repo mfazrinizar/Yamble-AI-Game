@@ -182,52 +182,54 @@ class _JoinPageState extends State<JoinPage> {
           builder: (context, setState) {
             return AlertDialog(
               title: const Text('Select Difficulty'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ListTile(
-                    title: const Text('Easy'),
-                    subtitle:
-                        const Text('For young gambler with yapping interest.'),
-                    leading: Radio<String>(
-                      value: 'easy',
-                      groupValue: _selectedDifficulty,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedDifficulty = value;
-                        });
-                      },
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ListTile(
+                      title: const Text('Easy'),
+                      subtitle: const Text(
+                          'For young gambler with yapping interest.'),
+                      leading: Radio<String>(
+                        value: 'easy',
+                        groupValue: _selectedDifficulty,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedDifficulty = value;
+                          });
+                        },
+                      ),
                     ),
-                  ),
-                  ListTile(
-                    title: const Text('Medium'),
-                    subtitle: const Text(
-                        'A moderate yapping challenge for intermediate gambler.'),
-                    leading: Radio<String>(
-                      value: 'medium',
-                      groupValue: _selectedDifficulty,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedDifficulty = value;
-                        });
-                      },
+                    ListTile(
+                      title: const Text('Medium'),
+                      subtitle: const Text(
+                          'A moderate yapping challenge for intermediate gambler.'),
+                      leading: Radio<String>(
+                        value: 'medium',
+                        groupValue: _selectedDifficulty,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedDifficulty = value;
+                          });
+                        },
+                      ),
                     ),
-                  ),
-                  ListTile(
-                    title: const Text('Hard'),
-                    subtitle: const Text(
-                        'For experienced gambler seeking a tough yapping challenge.'),
-                    leading: Radio<String>(
-                      value: 'hard',
-                      groupValue: _selectedDifficulty,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedDifficulty = value;
-                        });
-                      },
+                    ListTile(
+                      title: const Text('Hard'),
+                      subtitle: const Text(
+                          'For experienced gambler seeking a tough yapping challenge.'),
+                      leading: Radio<String>(
+                        value: 'hard',
+                        groupValue: _selectedDifficulty,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedDifficulty = value;
+                          });
+                        },
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               actions: [
                 TextButton(

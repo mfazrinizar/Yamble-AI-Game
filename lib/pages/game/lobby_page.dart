@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:yamble_yap_to_gamble_ai_game/db/game/game_api.dart';
+import 'package:yamble_yap_to_gamble_ai_game/pages/game/game_page.dart';
 
 class LobbyPage extends StatefulWidget {
   final String joinCode;
@@ -92,9 +93,24 @@ class _LobbyPageState extends State<LobbyPage> {
 
   Future<void> _startGame() async {
     if (_isHost && _gameSnapshot != null) {
-      await _gameSnapshot!.reference.update({
-        'gameActive': true,
-      });
+      final gameApi = GameApi();
+
+      SmartDialog.showLoading(
+        msg: 'Starting game...',
+        maskColor: Theme.of(context).primaryColor.withOpacity(0.5),
+      );
+      final gameIsStarted = await gameApi.startRound(widget.joinCode);
+
+      SmartDialog.dismiss();
+
+      if (gameIsStarted) {
+        SmartDialog.showNotify(
+            msg: 'Game Started!', notifyType: NotifyType.success);
+      } else {
+        SmartDialog.showNotify(
+            msg: 'Failed to start the game.', notifyType: NotifyType.error);
+      }
+      SmartDialog.dismiss();
       // Navigate to the game screen or other actions to start the game
     }
   }
@@ -102,7 +118,10 @@ class _LobbyPageState extends State<LobbyPage> {
   Future<void> _cancelGame(BuildContext context) async {
     final gameApi = GameApi();
 
-    SmartDialog.showLoading(msg: 'Cancelling game...');
+    SmartDialog.showLoading(
+      msg: 'Cancelling game...',
+      maskColor: Theme.of(context).primaryColor.withOpacity(0.5),
+    );
 
     final cancelSuccess = await gameApi.cancelGame(widget.joinCode);
 
@@ -124,7 +143,10 @@ class _LobbyPageState extends State<LobbyPage> {
   Future<void> _leaveGame(BuildContext context) async {
     final gameApi = GameApi();
 
-    SmartDialog.showLoading(msg: 'Leaving game...');
+    SmartDialog.showLoading(
+      msg: 'Leaving game...',
+      maskColor: Theme.of(context).primaryColor.withOpacity(0.5),
+    );
 
     final leaveSuccess = await gameApi.leaveGame(widget.joinCode);
 
@@ -256,8 +278,26 @@ class _LobbyPageState extends State<LobbyPage> {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     Navigator.pop(context);
                     SmartDialog.showNotify(
-                        msg: 'The Host cancelled the game.',
+                        msg: 'The Host ended the game.',
                         notifyType: NotifyType.alert);
+                  });
+                }
+
+                bool gameStarted = gameData['rounds'].length > 0;
+                if (gameStarted) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    SmartDialog.showNotify(
+                        msg: 'The game has started.',
+                        notifyType: NotifyType.alert);
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => GamePage(
+                          joinCode: widget.joinCode,
+                        ),
+                      ),
+                      (Route<dynamic> route) => false,
+                    );
                   });
                 }
 
@@ -477,7 +517,8 @@ class _LobbyPageState extends State<LobbyPage> {
                                 padding: const EdgeInsets.all(8.0),
                                 child: FilledButton(
                                   onPressed:
-                                      players.length >= 2 ? _startGame : null,
+                                      // ignore: prefer_is_empty
+                                      players.length >= 1 ? _startGame : null,
                                   child: const Text(
                                     'Start Game',
                                     style: TextStyle(fontSize: 20),

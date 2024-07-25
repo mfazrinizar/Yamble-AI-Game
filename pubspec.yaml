@@ -55,6 +55,7 @@ dependencies:
   url_launcher: ^6.3.0
   google_generative_ai: ^0.4.3
   audioplayers: ^6.0.0
+  flutter_countdown_timer: ^4.1.0
  
 
 flutter_launcher_icons:
