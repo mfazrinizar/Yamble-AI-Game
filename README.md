@@ -3,7 +3,7 @@
 Welcome to **Yamble: Yap to Gamble**, a real-time AI-based multiplayer game built with Flutter and Firebase Firestore. This project aims to create a dynamic and engaging gaming experience where players compete by solving AI-generated scenarios.
 
 <div style="display:flex;">
-    <img src="https://github.com/user-attachments/assets/d85cb6fc-41b8-4586-ad13-7b9f29a8ff0a" alt="Logo" width="256"/>
+    <img src="https://github.com/user-attachments/assets/8a609270-fdf8-416d-85fc-749323fa0119" alt="Logo" width="256"/>
 </div>
 
 ## Introduction
@@ -46,9 +46,10 @@ storeFile=<anyName>.keystore`
 9. Click add project then proceed with the steps shown in Firebase Console web (setup Authentication, Firestore DB and Storage).
 10. Download `google-services.json` and place it to app-level Android folder (android/app/).
 11. Edit `.env.example` name to `.env`, then edit value of each environment variables according to your API (check [Firebase Console](https://console.firebase.google.com/) for all Firebase-related API, [Gemini](https://aistudio.google.com/app/apikey) for Generative AI API Key).
-12. If you don't want to generate your own AES 128/192/256 key, run `dart run build_runner build --define secure_dotenv_generator:secure_dotenv=OUTPUT_FILE=encryption_key.json`. If you decided to generate your own, run `dart run build_runner build --define secure_dotenv_generator:secure_dotenv=ENCRYPTION_KEY=yourEncryptionKey  --define secure_dotenv_generator:secure_dotenv=IV=yourIvKey --define secure_dotenv_generator:secure_dotenv=OUTPUT_FILE=encryption_key.json`.
-13. Run `flutter build apk --release --split-per-abi --obfuscate --split-debug-info=/debug_info/` for splitted APK (each architecture) or `flutter build apk --release --obfuscate --split-debug-info=/debug_info/` for FAT APK (contains all ABIs)
-14. Your build should be at `build/app/outputs/flutter-apk` <br>
+12. If you don't want to generate your own AES-128/192/256-CBC key, run `dart run build_runner build --define secure_dotenv_generator:secure_dotenv=OUTPUT_FILE=encryption_key.json`. If you decided to generate your own, run `dart run build_runner build --define secure_dotenv_generator:secure_dotenv=ENCRYPTION_KEY=yourEncryptionKey  --define secure_dotenv_generator:secure_dotenv=IV=yourIvKey --define secure_dotenv_generator:secure_dotenv=OUTPUT_FILE=encryption_key.json`.
+13. Edit `.vscode/launch.json.example`, pay attention to the comments. Edit the value of `ENV_ENCRYPTION_KEY` and `ENV_IV_KEY` to your generated AES-128/192/256-CBC key (`encryption_key.json`).
+14. Run `flutter build apk --release --split-per-abi --obfuscate --split-debug-info=/debug_info/ --dart-define ENV_ENCRYPTION_KEY=your_encryption_key_here --dart-define ENV_IV_KEY=your_iv_key_here` for splitted APK (each architecture) or `flutter build apk --release --obfuscate --split-debug-info=/debug_info/ --dart-define ENV_ENCRYPTION_KEY=your_encryption_key_here --dart-define ENV_IV_KEY=your_iv_key_here` for FAT APK (contains all ABIs)
+15. Your build should be at `build/app/outputs/flutter-apk` <br>
 Facing problems? Kindly open an issue.
 
 ## How to Contribute
